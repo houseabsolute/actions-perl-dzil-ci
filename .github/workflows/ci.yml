@@ -1,0 +1,166 @@
+on:
+  workflow_call:
+    inputs:
+      dist:
+        description: "The Perl distro being tested"
+        type: string
+        required: true
+      ref:
+        description: "The ref of this reusable workflow"
+        type: string
+        required: true
+      min-perl:
+        description: "The minimum version of Perl to test with"
+        type: string
+        default: "5.10.1"
+
+jobs:
+  build-release-tarball:
+    name: Build release tarball
+    runs-on: ubuntu-latest
+    steps:
+      - name: Check out Perl project repository
+        uses: actions/checkout@v4
+
+      - name: Check out workflow repository
+        uses: actions/checkout@v4
+        with:
+          repository: houseabsolute/actions-perl-dzil-ci
+          ref: ${{ inputs.ref }}
+          # We have to use `./` at the beginning of a `uses:` path, so putting it under `.git`
+          # ensures that tools like `precious` ignore it.
+          path: ./.git/.actions-perl-dzil-ci
+
+      - name: Set up Perl
+        uses: ./.git/.actions-perl-dzil-ci/.github/actions/set-up-perl
+        with:
+          perl-version: latest
+          cache-prefix: build-and-author-tests
+          cache-extra: bin
+
+      - name: Install Dist::Zilla and Test::Harness
+        run: cpm install --global Dist::Zilla Test::Harness
+
+      - name: Generate list of author deps
+        # Some of my distros have author deps under `inc::` that live in the same repo.
+        run: dzil authordeps | grep -v '^inc::' > /tmp/dzil-authordeps.txt
+
+      - name: Upload dzil authordeps artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: dzil-authordeps.txt
+          path: /tmp/dzil-authordeps.txt
+
+      - name: Install author deps
+        run: |
+          cpm install --show-build-log-on-failure --global $(cat /tmp/dzil-authordeps.txt)
+
+      - name: Build release tarball
+        run: dzil build
+
+      - name: Upload release tarball artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: "${{ inputs.dist }}.tar.gz"
+          path: "*.tar.gz"
+
+  author-tests:
+    needs: build-release-tarball
+    name: Author tests with Perl latest
+    runs-on: ubuntu-latest
+    steps:
+      - name: Check out workflow repository
+        uses: actions/checkout@v4
+        with:
+          repository: houseabsolute/actions-perl-dzil-ci
+          ref: ${{ inputs.ref }}
+          path: ./.git/.actions-perl-dzil-ci
+
+      - name: Download and unpack release tarball
+        uses: ./.git/.actions-perl-dzil-ci/.github/actions/download-and-unpack-release-tarball
+        with:
+          dist: ${{ inputs.dist }}
+
+      - name: Set up Perl
+        uses: ./.git/.actions-perl-dzil-ci/.github/actions/set-up-perl
+        with:
+          perl-version: latest
+          cache-prefix: build-and-author-tests
+          cache-extra: bin
+
+      - name: Install mise
+        run: |
+          set -e
+          set -x
+
+          curl https://mise.run | sh
+          mise install
+
+      - name: Install aspell
+        run: |
+          set -e
+          set -x
+
+          sudo apt-get -y update
+          sudo apt-get -y install aspell
+
+      - name: Install module deps
+        run: |
+          cpm install --show-build-log-on-failure --global --with-all --cpanfile ./cpanfile
+
+      - name: Run tests
+        run: |
+          AUTOMATED_TESTING=1 \
+              AUTHOR_TESTING=1 \
+              EXTENDED_TESTING=1 \
+              RELEASE_TESTING=1 \
+              mise exec -- prove -lr -j 24 t/ xt/
+
+  test-matrix:
+    needs: build-release-tarball
+    name: ${{ matrix.os-and-perl.os-name }} with Perl ${{ matrix.os-and-perl.perl-version }}
+    runs-on: ${{ matrix.os-and-perl.runs-on }}
+    strategy:
+      fail-fast: false
+      matrix:
+        os-and-perl:
+          - os-name: Linux
+            runs-on: ubuntu-latest
+            perl-version: ${{ inputs.min-perl }}
+
+          - os-name: macOS
+            runs-on: macos-latest
+            perl-version: latest
+
+          - os-name: Windows
+            runs-on: windows-latest
+            perl-version: latest
+
+    steps:
+      - name: Check out workflow repository
+        uses: actions/checkout@v4
+        with:
+          repository: houseabsolute/actions-perl-dzil-ci
+          ref: ${{ inputs.ref }}
+          path: ./.git/.actions-perl-dzil-ci
+
+      - name: Download and unpack release tarball
+        uses: ./.git/.actions-perl-dzil-ci/.github/actions/download-and-unpack-release-tarball
+        with:
+          dist: ${{ inputs.dist }}
+
+      - name: Set up Perl
+        uses: ./.git/.actions-perl-dzil-ci/.github/actions/set-up-perl
+        with:
+          perl-version: ${{ matrix.os-and-perl.perl-version }}
+          cache-prefix: test-matrix
+
+      - name: Install module deps
+        # If we use bash on windows, cpm blows up in weird ways from missing prereqs.
+        run: |
+          cpm install --show-build-log-on-failure --global --cpanfile ./cpanfile
+
+      - name: Run tests
+        # If we use bash on Windows we get an error that prove is not in the $PATH.
+        run: |
+          prove -lr -j 24 t/

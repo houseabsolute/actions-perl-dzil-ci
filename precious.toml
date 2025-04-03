@@ -1,0 +1,47 @@
+exclude = [
+  "target",
+  "tests/lib/**/*",
+]
+
+[commands.typos]
+type = "both"
+include = "**/*"
+exclude = "**/*.tar.gz"
+invoke = "once"
+cmd = "typos"
+tidy_flags = "--write-changes"
+ok-exit-codes = 0
+lint-failure-exit-codes = 2
+
+[commands.prettier-md]
+type    = "both"
+include = [ "**/*.md" ]
+cmd     = [ "prettier", "--no-config", "--print-width", "100", "--prose-wrap", "always" ]
+lint_flags = "--check"
+tidy_flags = "--write"
+ok_exit_codes = 0
+lint_failure_exit_codes = 1
+ignore_stderr = [ "Code style issues" ]
+
+[commands.prettier-yml]
+type    = "both"
+include = [ "**/*.yml" ]
+cmd     = [ "prettier", "--no-config" ]
+lint_flags = "--check"
+tidy_flags = "--write"
+ok_exit_codes = 0
+lint_failure_exit_codes = 1
+ignore_stderr = [ "Code style issues" ]
+
+[commands.omegasort-gitignore]
+type = "both"
+include = "**/.gitignore"
+cmd = [ "omegasort", "--sort", "path", "--unique" ]
+lint_flags = "--check"
+tidy_flags = "--in-place"
+ok_exit_codes = 0
+lint_failure_exit_codes = 1
+ignore_stderr = [
+    "The .+ file is not sorted",
+    "The .+ file is not unique",
+]

@@ -1,0 +1,36 @@
+name: Set Up Perl
+description: "Sets up the requested Perl version and sets up caching for its @INC dirs"
+
+inputs:
+  perl-version:
+    required: true
+  cache-prefix:
+    required: true
+  cache-extra:
+    default: ""
+
+runs:
+  using: composite
+  steps:
+    - name: Set Up Perl ${{ inputs.perl-version }}
+      uses: shogo82148/actions-setup-perl@v1
+      id: set-up-perl
+      with:
+        perl-version: ${{ inputs.perl-version }}
+        enable-modules-cache: false
+
+    - name: Define Cache Paths
+      id: define-cache-paths
+      shell: bash
+      run: |
+        perl ./.git/.actions-perl-dzil-ci/.github/actions/set-up-perl/define-cache-paths.pl "${{ steps.set-up-perl.outputs.perl-version }}" "${{ inputs.cache-extra }}"
+
+    - name:
+      uses: actions/cache@v4
+      with:
+        path: |
+          ${{ steps.define-cache-paths.outputs.cache-paths }}
+        key: |
+          ${{ inputs.cache-prefix }}-perl-cache-${{ steps.set-up-perl.outputs.perl-hash }}-${{ hashFiles('dist.ini') }}
+        restore-keys: |
+          ${{ inputs.cache-prefix }}-perl-cache-${{ steps.set-up-perl.outputs.perl-hash }}

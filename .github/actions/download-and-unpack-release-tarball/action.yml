@@ -1,0 +1,23 @@
+name: Download and Unpack Release Tarball
+description: "This will download the release tarball and unpack it"
+
+inputs:
+  dist:
+    required: true
+
+runs:
+  using: composite
+  steps:
+    - uses: actions/download-artifact@v4
+      with:
+        name: "${{ inputs.dist }}.tar.gz"
+
+    - name: Untar release tarball
+      shell: bash
+      run: |
+        set -e
+        set -x
+
+        tar -xvzf ${{ inputs.dist }}-*.tar.gz
+        mv ${{ inputs.dist }}-*/* .
+        rm -fr ${{ inputs.dist }}-*
