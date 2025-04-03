@@ -1,0 +1,133 @@
+name: "Run Tests for Perl Projects that Use Dist::Zilla"
+author: "Dave Rolsky <autarch@urth.org>"
+
+inputs:
+  dist:
+    description: "The Perl distro being tested"
+    required: true
+
+jobs:
+  build-release-tarball:
+    name: Build release tarball
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: ./shared/set-up-perl.yml
+        with:
+          perl-version: latest
+          cache-prefix: build-and-author-tests
+          cache-extra: bin
+
+      - name: Install Dist::Zilla and Test::Harness
+        run: cpm install --global Dist::Zilla Test::Harness
+
+      - name: Generate list of author deps
+        run: dzil authordeps > /tmp/dzil-authordeps.txt
+
+      - name: Upload dzil authordeps artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: dzil-authordeps.txt
+          path: /tmp/dzil-authordeps.txt
+
+      - name: Install author deps
+        run: |
+          cpm install --show-build-log-on-failure --global $(cat /tmp/dzil-authordeps.txt)
+
+      - name: Build release tarball
+        run: dzil build
+
+      - name: Upload release tarball artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: "${{ inputs.dist }}.tar.gz"
+          path: "*.tar.gz"
+
+  author-tests:
+    needs: build-release-tarball
+    name: Author tests with latest Perl
+    runs-on: ubuntu-latest
+    steps:
+      - uses: ./shared/download-and-unpack-release-tarball.yml
+        with:
+          dist: ${{ inputs.dist }}
+
+      - uses: ./shared/set-up-perl.yml
+        with:
+          perl-version: latest
+          cache-prefix: build-and-author-tests
+          cache-extra: bin
+
+      - name: Install mise
+        run: |
+          set -e
+          set -x
+
+          curl https://mise.run | sh
+          mise install
+
+      - name: Install aspell
+        run: |
+          set -e
+          set -x
+
+          sudo apt-get -y update
+          sudo apt-get -y install aspell
+
+      - uses: actions/upload-artifact@v4
+        with:
+          name: dzil-listdeps.txt
+          path: /tmp/dzil-listdeps.txt
+
+      - name: Install module deps
+        run: |
+          cpm install --show-build-log-on-failure --global --with-all --cpanfile ./cpanfile
+
+      - name: Run tests
+        run: |
+          AUTOMATED_TESTING=1 \
+              AUTHOR_TESTING=1 \
+              EXTENDED_TESTING=1 \
+              RELEASE_TESTING=1 \
+              mise exec -- prove -lr -j 24 t/ xt/
+
+  test-matrix:
+    needs: build-release-tarball
+    name: ${{ matrix.os-and-perl.os-name }} with Perl ${{ matrix.os-and-perl.perl-version }}
+    runs-on: ${{ matrix.os-and-perl.runs-on }}
+    strategy:
+      fail-fast: false
+      matrix:
+        os-and-perl:
+          - os-name: Linux
+            runs-on: ubuntu-latest
+            perl-version: "5.10.1"
+
+          - os-name: macOS
+            runs-on: macos-latest
+            perl-version: latest
+
+          - os-name: Windows
+            runs-on: windows-latest
+            perl-version: latest
+
+    steps:
+      - uses: ./shared/download-and-unpack-release-tarball.yml
+        with:
+          dist: ${{ inputs.dist }}
+
+      - uses: ./shared/set-up-perl.yml
+        with:
+          perl-version: ${{ matrix.os-and-perl.perl-version }}
+          cache-prefix: test-matrix
+
+      - name: Install module deps
+        # If we use bash on windows, cpm blows up in weird ways from missing prereqs.
+        run: |
+          cpm install --show-build-log-on-failure --global --cpanfile ./cpanfile
+
+      - name: Run tests
+        # If we use bash on Windows we get an error that prove is not in the $PATH.
+        run: |
+          prove -lr -j 24 t/

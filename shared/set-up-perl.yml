@@ -1,0 +1,30 @@
+inputs:
+  perl-version:
+    required: true
+  cache-prefix:
+    required: true
+  cache-extra:
+    default: ""
+
+steps:
+  - name: Set Up Perl ${{ inputs.perl-version }}
+    uses: shogo82148/actions-set-up-perl@v1
+    id: set-up-perl
+    with:
+      perl-version: ${{ inputs.perl-version }}
+      enable-modules-cache: false
+
+  - name: Define Cache Paths
+    id: define-cache-paths
+    run: |
+      perl ./define-cache-paths.pl "${{ steps.set-up-perl.outputs.perl-version }}" "${{ inputs.cache-extra }}"
+
+  - name:
+    uses: actions/cache@v4
+    with:
+      path: |
+        ${{ steps.define-cache-paths.outputs.cache-paths }}
+      key: |
+        ${{ inputs.cache-prefix }}-perl-cache-${{ steps.set-up-perl.outputs.perl-hash }}-${{ hashFiles('dist.ini') }}
+      restore-keys: |
+        ${{ inputs.cache-prefix }}-perl-cache-${{ steps.set-up-perl.outputs.perl-hash }}

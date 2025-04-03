@@ -1,0 +1,17 @@
+inputs:
+  dist:
+    required: true
+
+steps:
+  - uses: actions/download-artifact@v4
+    with:
+      name: "${{ inputs.dist }}.tar.gz"
+
+  - name: Untar release tarball
+    run: |
+      set -e
+      set -x
+
+      tar -xvzf ${{ inputs.dist }}-*.tar.gz
+      mv ${{ inputs.dist }}-*/* .
+      rm -fr ${{ inputs.dist }}-*
