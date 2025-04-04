@@ -4,6 +4,8 @@ description: "Sets up the requested Perl version and sets up caching for its @IN
 inputs:
   perl-version:
     required: true
+  multi-thread:
+    default: false
   cache-prefix:
     required: true
   cache-extra:
@@ -17,6 +19,7 @@ runs:
       id: set-up-perl
       with:
         perl-version: ${{ inputs.perl-version }}
+        multi-thread: ${{ inputs.multi-thread }}
         enable-modules-cache: false
 
     - name: Define Cache Paths

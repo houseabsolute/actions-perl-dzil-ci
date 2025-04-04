@@ -13,6 +13,10 @@ on:
         description: "The minimum version of Perl to test with"
         type: string
         default: "5.10.1"
+      with-threads:
+        description: "If true, then latest Perl with threads enabled will be added to the matrix"
+        type: boolean
+        default: false
 
 jobs:
   build-release-tarball:
@@ -63,6 +67,28 @@ jobs:
         with:
           name: "${{ inputs.dist }}.tar.gz"
           path: "*.tar.gz"
+
+  define-matrix:
+    name: Define test matrix
+    runs-on: ubuntu-latest
+    outputs:
+      matrix: ${{ steps.define-matrix.outputs.matrix }}
+    steps:
+      - name: Check out workflow repository
+        uses: actions/checkout@v4
+        with:
+          repository: houseabsolute/actions-perl-dzil-ci
+          ref: ${{ inputs.ref }}
+          path: ./.git/.actions-perl-dzil-ci
+
+      - name: Define test matrix
+        id: define-matrix
+        run: |
+          perl ./.git/.actions-perl-dzil-ci/.github/workflows/define-test-matrix.pl "${{ inputs.min-perl }}" "${{ inputs.with-threads }}"
+
+      - name: Show matrix
+        run: |
+          echo '${{ steps.define-matrix.outputs.matrix }}' | jq .
 
   author-tests:
     needs: build-release-tarball
@@ -122,24 +148,14 @@ jobs:
               mise exec -- prove -br -j 24 t/ xt/
 
   test-matrix:
-    needs: build-release-tarball
-    name: ${{ matrix.os-and-perl.os-name }} with Perl ${{ matrix.os-and-perl.perl-version }}
+    needs:
+      - build-release-tarball
+      - define-matrix
+    name: ${{ matrix.os-and-perl.name }} with Perl ${{ matrix.os-and-perl.perl-version }}
     runs-on: ${{ matrix.os-and-perl.runs-on }}
     strategy:
       fail-fast: false
-      matrix:
-        os-and-perl:
-          - os-name: Linux
-            runs-on: ubuntu-latest
-            perl-version: ${{ inputs.min-perl }}
-
-          - os-name: macOS
-            runs-on: macos-latest
-            perl-version: latest
-
-          - os-name: Windows
-            runs-on: windows-latest
-            perl-version: latest
+      matrix: ${{ fromJSON(needs.define-matrix.outputs.matrix) }}
 
     steps:
       - name: Check out workflow repository
@@ -158,6 +174,7 @@ jobs:
         uses: ./.git/.actions-perl-dzil-ci/.github/actions/set-up-perl
         with:
           perl-version: ${{ matrix.os-and-perl.perl-version }}
+          multi-thread: ${{ matrix.os-and-perl.multi-thread }}
           cache-prefix: test-matrix
 
       - name: Install module deps
