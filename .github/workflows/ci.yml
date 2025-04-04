@@ -108,13 +108,18 @@ jobs:
         run: |
           cpm install --show-build-log-on-failure --global --with-all --cpanfile ./cpanfile
 
+      - name: Run Makefile.PL and make
+        run: |
+          perl Makefile.PL
+          make -j 24
+
       - name: Run tests
         run: |
           AUTOMATED_TESTING=1 \
               AUTHOR_TESTING=1 \
               EXTENDED_TESTING=1 \
               RELEASE_TESTING=1 \
-              mise exec -- prove -lr -j 24 t/ xt/
+              mise exec -- prove -br -j 24 t/ xt/
 
   test-matrix:
     needs: build-release-tarball
@@ -160,7 +165,12 @@ jobs:
         run: |
           cpm install --show-build-log-on-failure --global --cpanfile ./cpanfile
 
+      - name: Run Makefile.PL and make
+        run: |
+          perl Makefile.PL
+          make -j 24
+
       - name: Run tests
         # If we use bash on Windows we get an error that prove is not in the $PATH.
         run: |
-          prove -lr -j 24 t/
+          prove -br -j 24 t/
