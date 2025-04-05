@@ -121,6 +121,8 @@ jobs:
 
           curl https://mise.run | sh
           mise install
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
       - name: Install aspell
         run: |
