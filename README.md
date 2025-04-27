@@ -22,7 +22,8 @@ Before you report any issues, here are some things I _don't_ want to do with thi
 - Support Perl distros that don't use `dzil`.
 - Support Perl versions that aren't provided by
   [`shogo82148/actions-setup-perl`](https://github.com/shogo82148/actions-setup-perl).
-- Do a lot of work on this to support a bizarre use case.
+- Do a lot of work on this to support a bizarre use case, where I get to decide what qualifies as
+  "bizarre".
 
 With that said, do feel free to report issues. If it's not something I want to support, that's ok. I
 will politely close the issue.
