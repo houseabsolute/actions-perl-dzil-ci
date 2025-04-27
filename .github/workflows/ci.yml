@@ -17,6 +17,9 @@ on:
         description: "If true, then latest Perl with threads enabled will be added to the matrix"
         type: boolean
         default: false
+      apt-packages-for-author-tests:
+        description: "Apt packages to install when running author tests as a string containing a whitespace-separated list of packages"
+        type: string
 
 jobs:
   build-release-tarball:
@@ -95,6 +98,18 @@ jobs:
     name: Author tests with Perl latest
     runs-on: ubuntu-latest
     steps:
+      - name: Install extra apt packages
+        run: |
+          set -e
+          set -x
+
+          if [ -n "${{ inputs.apt-packages-for-author-tests }}" ]; then
+              sudo apt-get update
+              # This will turn newlines into spaces.
+              packages="$(perl -E 'say join q{ }, split /\s+/, q{${{ inputs.apt-packages-for-author-tests }}}')"
+              sudo apt-get --yes install $packages
+          fi
+
       - name: Check out workflow repository
         uses: actions/checkout@v4
         with:
