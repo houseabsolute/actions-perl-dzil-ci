@@ -32,14 +32,14 @@ jobs:
       - name: Check out workflow repository
         uses: actions/checkout@v4
         with:
-          repository: houseabsolute/actions-perl-dzil-ci
+          repository: houseabsolute/workflow-perl-dzil-ci
           ref: ${{ inputs.ref }}
           # We have to use `./` at the beginning of a `uses:` path, so putting it under `.git`
           # ensures that tools like `precious` ignore it.
-          path: ./.git/.actions-perl-dzil-ci
+          path: ./.git/.workflow-perl-dzil-ci
 
       - name: Set up Perl
-        uses: ./.git/.actions-perl-dzil-ci/.github/actions/set-up-perl
+        uses: ./.git/.workflow-perl-dzil-ci/.github/actions/set-up-perl
         with:
           perl-version: latest
           cache-prefix: build-and-author-tests
@@ -80,14 +80,14 @@ jobs:
       - name: Check out workflow repository
         uses: actions/checkout@v4
         with:
-          repository: houseabsolute/actions-perl-dzil-ci
+          repository: houseabsolute/workflow-perl-dzil-ci
           ref: ${{ inputs.ref }}
-          path: ./.git/.actions-perl-dzil-ci
+          path: ./.git/.workflow-perl-dzil-ci
 
       - name: Define test matrix
         id: define-matrix
         run: |
-          perl ./.git/.actions-perl-dzil-ci/.github/workflows/define-test-matrix.pl "${{ inputs.min-perl }}" "${{ inputs.with-threads }}"
+          perl ./.git/.workflow-perl-dzil-ci/.github/workflows/define-test-matrix.pl "${{ inputs.min-perl }}" "${{ inputs.with-threads }}"
 
       - name: Show matrix
         run: |
@@ -113,17 +113,17 @@ jobs:
       - name: Check out workflow repository
         uses: actions/checkout@v4
         with:
-          repository: houseabsolute/actions-perl-dzil-ci
+          repository: houseabsolute/workflow-perl-dzil-ci
           ref: ${{ inputs.ref }}
-          path: ./.git/.actions-perl-dzil-ci
+          path: ./.git/.workflow-perl-dzil-ci
 
       - name: Download and unpack release tarball
-        uses: ./.git/.actions-perl-dzil-ci/.github/actions/download-and-unpack-release-tarball
+        uses: ./.git/.workflow-perl-dzil-ci/.github/actions/download-and-unpack-release-tarball
         with:
           dist: ${{ inputs.dist }}
 
       - name: Set up Perl
-        uses: ./.git/.actions-perl-dzil-ci/.github/actions/set-up-perl
+        uses: ./.git/.workflow-perl-dzil-ci/.github/actions/set-up-perl
         with:
           perl-version: latest
           cache-prefix: build-and-author-tests
@@ -178,17 +178,17 @@ jobs:
       - name: Check out workflow repository
         uses: actions/checkout@v4
         with:
-          repository: houseabsolute/actions-perl-dzil-ci
+          repository: houseabsolute/workflow-perl-dzil-ci
           ref: ${{ inputs.ref }}
-          path: ./.git/.actions-perl-dzil-ci
+          path: ./.git/.workflow-perl-dzil-ci
 
       - name: Download and unpack release tarball
-        uses: ./.git/.actions-perl-dzil-ci/.github/actions/download-and-unpack-release-tarball
+        uses: ./.git/.workflow-perl-dzil-ci/.github/actions/download-and-unpack-release-tarball
         with:
           dist: ${{ inputs.dist }}
 
       - name: Set up Perl
-        uses: ./.git/.actions-perl-dzil-ci/.github/actions/set-up-perl
+        uses: ./.git/.workflow-perl-dzil-ci/.github/actions/set-up-perl
         with:
           perl-version: ${{ matrix.os-and-perl.perl-version }}
           multi-thread: ${{ matrix.os-and-perl.multi-thread }}
