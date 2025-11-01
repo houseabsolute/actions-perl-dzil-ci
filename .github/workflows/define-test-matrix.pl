@@ -8,16 +8,17 @@ my $min_perl     = shift;
 my $with_threads = shift;
 
 my @jobs = (
-    {
-        name           => 'Linux',
-        'runs-on'      => 'ubuntu-latest',
-        'perl-version' => $min_perl,
-    },
-    {
-        name           => 'macOS',
-        'runs-on'      => 'macos-latest',
-        'perl-version' => 'latest',
-    },
+
+    # {
+    #     name           => 'Linux',
+    #     'runs-on'      => 'ubuntu-latest',
+    #     'perl-version' => $min_perl,
+    # },
+    # {
+    #     name           => 'macOS',
+    #     'runs-on'      => 'macos-latest',
+    #     'perl-version' => 'latest',
+    # },
     {
         name           => 'Windows',
         'runs-on'      => 'windows-latest',

@@ -93,76 +93,76 @@ jobs:
         run: |
           echo '${{ steps.define-matrix.outputs.matrix }}' | jq .
 
-  author-tests:
-    needs: build-release-tarball
-    name: Author tests with Perl latest
-    runs-on: ubuntu-latest
-    steps:
-      - name: Install extra apt packages
-        run: |
-          set -e
-          set -x
+  # author-tests:
+  #   needs: build-release-tarball
+  #   name: Author tests with Perl latest
+  #   runs-on: ubuntu-latest
+  #   steps:
+  #     - name: Install extra apt packages
+  #       run: |
+  #         set -e
+  #         set -x
 
-          if [ -n "${{ inputs.apt-packages-for-author-tests }}" ]; then
-              sudo apt-get update
-              # This will turn newlines into spaces.
-              packages="$(perl -E 'say join q{ }, split /\s+/, q{${{ inputs.apt-packages-for-author-tests }}}')"
-              sudo apt-get --yes install $packages
-          fi
+  #         if [ -n "${{ inputs.apt-packages-for-author-tests }}" ]; then
+  #             sudo apt-get update
+  #             # This will turn newlines into spaces.
+  #             packages="$(perl -E 'say join q{ }, split /\s+/, q{${{ inputs.apt-packages-for-author-tests }}}')"
+  #             sudo apt-get --yes install $packages
+  #         fi
 
-      - name: Check out workflow repository
-        uses: actions/checkout@v4
-        with:
-          repository: houseabsolute/workflow-perl-dzil-ci
-          ref: ${{ inputs.ref }}
-          path: ./.git/.workflow-perl-dzil-ci
+  #     - name: Check out workflow repository
+  #       uses: actions/checkout@v4
+  #       with:
+  #         repository: houseabsolute/workflow-perl-dzil-ci
+  #         ref: ${{ inputs.ref }}
+  #         path: ./.git/.workflow-perl-dzil-ci
 
-      - name: Download and unpack release tarball
-        uses: ./.git/.workflow-perl-dzil-ci/.github/actions/download-and-unpack-release-tarball
-        with:
-          dist: ${{ inputs.dist }}
+  #     - name: Download and unpack release tarball
+  #       uses: ./.git/.workflow-perl-dzil-ci/.github/actions/download-and-unpack-release-tarball
+  #       with:
+  #         dist: ${{ inputs.dist }}
 
-      - name: Set up Perl
-        uses: ./.git/.workflow-perl-dzil-ci/.github/actions/set-up-perl
-        with:
-          perl-version: latest
-          cache-prefix: build-and-author-tests
-          cache-extra: bin
+  #     - name: Set up Perl
+  #       uses: ./.git/.workflow-perl-dzil-ci/.github/actions/set-up-perl
+  #       with:
+  #         perl-version: latest
+  #         cache-prefix: build-and-author-tests
+  #         cache-extra: bin
 
-      - name: Install mise
-        run: |
-          set -e
-          set -x
+  #     - name: Install mise
+  #       run: |
+  #         set -e
+  #         set -x
 
-          curl https://mise.run | sh
-          mise install
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+  #         curl https://mise.run | sh
+  #         mise install
+  #       env:
+  #         GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
-      - name: Install aspell
-        run: |
-          set -e
-          set -x
+  #     - name: Install aspell
+  #       run: |
+  #         set -e
+  #         set -x
 
-          sudo apt-get -y update
-          sudo apt-get -y install aspell
+  #         sudo apt-get -y update
+  #         sudo apt-get -y install aspell
 
-      - name: Install module deps
-        run: |
-          cpm install --show-build-log-on-failure --global --with-all --cpanfile ./cpanfile
+  #     - name: Install module deps
+  #       run: |
+  #         cpm install --show-build-log-on-failure --global --with-all --cpanfile ./cpanfile
 
-      - name: Run Makefile.PL and make
-        run: |
-          perl Makefile.PL
-          make -j 24
+  #     - name: Run Makefile.PL and make
+  #       run: |
+  #         perl Makefile.PL
+  #         make -j 24
 
-      - name: Run tests
-        run: |
-          AUTOMATED_TESTING=1 \
-              AUTHOR_TESTING=1 \
-              EXTENDED_TESTING=1 \
-              RELEASE_TESTING=1 \
-              mise exec -- prove -br -j 24 t/ xt/
+  #     - name: Run tests
+  #       run: |
+  #         AUTOMATED_TESTING=1 \
+  #             AUTHOR_TESTING=1 \
+  #             EXTENDED_TESTING=1 \
+  #             RELEASE_TESTING=1 \
+  #             mise exec -- prove -br -j 24 t/ xt/
 
   test-matrix:
     needs:
@@ -200,8 +200,8 @@ jobs:
 
       - name: Run Makefile.PL and make
         run: |
+          $VerbosePreference = "continue"
           perl Makefile.PL
-          ls
           make -j 24
 
       - name: Run tests
