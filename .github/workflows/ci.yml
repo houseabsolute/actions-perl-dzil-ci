@@ -199,10 +199,36 @@ jobs:
         run: |
           cpm install --show-build-log-on-failure --global --cpanfile ./cpanfile
 
-      - name: Run Makefile.PL and make
+      - name: Run Makefile.PL and make (Linux/macOS)
+        shell: bash
         run: |
           perl Makefile.PL
           make -j 24
+        if: "!contains(matrix.os-and-perl.runs-on , 'windows')"
+
+      - name: Run Makefile.PL and make (Windows)
+        shell: pwsh
+        run: |
+          Set-StrictMode -Version Latest
+          $ErrorActionPreference = "Stop"
+
+          function Run-Command {
+              param(
+                  [string]$Command,
+                  [string[]]$Arguments
+              )
+
+              & $Command @Arguments
+
+              if ($LastExitCode -ne 0) {
+                  Write-Error "Command failed with exit code ${LastExitCode}: $Command $($Arguments -join ' ')"
+                  exit $LastExitCode
+              }
+          }
+
+          Run-Command -Command "perl" -Arguments @("Makefile.PL")
+          Run-Command -Command "make" -Arguments @("-j", "24")
+        if: contains(matrix.os-and-perl.runs-on, 'windows')
 
       - name: Run tests
         # If we use bash on Windows we get an error that prove is not in the $PATH.
