@@ -193,7 +193,6 @@ jobs:
           perl-version: ${{ matrix.os-and-perl.perl-version }}
           multi-thread: ${{ matrix.os-and-perl.multi-thread }}
           cache-prefix: test-matrix
-
       - name: Install module deps
         # If we use bash on windows, cpm blows up in weird ways from missing prereqs.
         run: |
@@ -202,6 +201,7 @@ jobs:
       - name: Run Makefile.PL and make
         run: |
           perl Makefile.PL
+          ls
           make -j 24
 
       - name: Run tests
