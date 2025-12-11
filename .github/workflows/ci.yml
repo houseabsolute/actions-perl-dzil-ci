@@ -2,23 +2,26 @@ on:
   workflow_call:
     inputs:
       dist:
-        description: "The Perl distro being tested"
+        description: "The Perl distro being tested."
         type: string
         required: true
       ref:
-        description: "The ref of this reusable workflow"
+        description: "The ref of this reusable workflow."
         type: string
         required: true
       min-perl:
-        description: "The minimum version of Perl to test with"
+        description: "The minimum version of Perl to test with."
         type: string
         default: "5.12.5"
       with-threads:
-        description: "If true, then latest Perl with threads enabled will be added to the matrix"
+        description: "If true, then latest Perl with threads enabled will be added to the matrix."
         type: boolean
         default: false
+      additional-modules:
+        description: "Additional modules to install. This should be a whitespace-separated list."
+        type: string
       apt-packages-for-author-tests:
-        description: "Apt packages to install when running author tests as a string containing a whitespace-separated list of packages"
+        description: "Apt packages to install when running author tests as a string containing a whitespace-separated list of packages."
         type: string
 
 jobs:
@@ -151,6 +154,11 @@ jobs:
         run: |
           cpm install --show-build-log-on-failure --global --with-all --cpanfile ./cpanfile
 
+      - name: Install additional deps
+        run: |
+          cpm install --show-build-log-on-failure --global ${{ inputs.additional-modules }}
+        if: "!inputs.additional-modules != ''"
+
       - name: Run Makefile.PL and make
         run: |
           perl Makefile.PL
@@ -198,6 +206,11 @@ jobs:
         # If we use bash on windows, cpm blows up in weird ways from missing prereqs.
         run: |
           cpm install --show-build-log-on-failure --global --cpanfile ./cpanfile
+
+      - name: Install additional deps
+        run: |
+          cpm install --show-build-log-on-failure --global ${{ inputs.additional-modules }}
+        if: "inputs.additional-modules != ''"
 
       - name: Run Makefile.PL and make (Linux/macOS)
         shell: bash
