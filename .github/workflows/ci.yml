@@ -49,7 +49,7 @@ jobs:
           cache-extra: bin
 
       - name: Install Dist::Zilla and Test::Harness
-        run: cpm install --global Dist::Zilla Test::Harness
+        run: cpm install --verbose --show-build-log-on-failure --global Dist::Zilla Test::Harness
 
       - name: Generate list of author deps
         # Some of my distros have author deps under `inc::` that live in the same repo.
@@ -63,7 +63,7 @@ jobs:
 
       - name: Install author deps
         run: |
-          cpm install --show-build-log-on-failure --global $(cat /tmp/dzil-authordeps.txt)
+          cpm install --verbose --show-build-log-on-failure --global $(cat /tmp/dzil-authordeps.txt)
 
       - name: Build release tarball
         run: dzil build
@@ -152,11 +152,11 @@ jobs:
 
       - name: Install module deps
         run: |
-          cpm install --show-build-log-on-failure --global --with-all --cpanfile ./cpanfile
+          cpm install --verbose --show-build-log-on-failure --global --with-all --cpanfile ./cpanfile
 
       - name: Install additional deps
         run: |
-          cpm install --show-build-log-on-failure --global ${{ inputs.additional-modules }}
+          cpm install --verbose --show-build-log-on-failure --global ${{ inputs.additional-modules }}
         if: "!inputs.additional-modules != ''"
 
       - name: Run Makefile.PL and make
@@ -205,11 +205,11 @@ jobs:
       - name: Install module deps
         # If we use bash on windows, cpm blows up in weird ways from missing prereqs.
         run: |
-          cpm install --show-build-log-on-failure --global --cpanfile ./cpanfile
+          cpm install --verbose --show-build-log-on-failure --global --cpanfile ./cpanfile
 
       - name: Install additional deps
         run: |
-          cpm install --show-build-log-on-failure --global ${{ inputs.additional-modules }}
+          cpm install --verbose --show-build-log-on-failure --global ${{ inputs.additional-modules }}
         if: "inputs.additional-modules != ''"
 
       - name: Run Makefile.PL and make (Linux/macOS)
