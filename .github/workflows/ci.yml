@@ -30,10 +30,10 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - name: Check out Perl project repository
-        uses: actions/checkout@v4
+        uses: actions/checkout@v6
 
       - name: Check out workflow repository
-        uses: actions/checkout@v4
+        uses: actions/checkout@v6
         with:
           repository: houseabsolute/workflow-perl-dzil-ci
           ref: ${{ inputs.ref }}
@@ -81,7 +81,7 @@ jobs:
       matrix: ${{ steps.define-matrix.outputs.matrix }}
     steps:
       - name: Check out workflow repository
-        uses: actions/checkout@v4
+        uses: actions/checkout@v6
         with:
           repository: houseabsolute/workflow-perl-dzil-ci
           ref: ${{ inputs.ref }}
@@ -114,7 +114,7 @@ jobs:
           fi
 
       - name: Check out workflow repository
-        uses: actions/checkout@v4
+        uses: actions/checkout@v6
         with:
           repository: houseabsolute/workflow-perl-dzil-ci
           ref: ${{ inputs.ref }}
@@ -184,7 +184,7 @@ jobs:
 
     steps:
       - name: Check out workflow repository
-        uses: actions/checkout@v4
+        uses: actions/checkout@v6
         with:
           repository: houseabsolute/workflow-perl-dzil-ci
           ref: ${{ inputs.ref }}
