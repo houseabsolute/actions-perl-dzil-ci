@@ -176,7 +176,7 @@ jobs:
     needs:
       - build-release-tarball
       - define-matrix
-    name: ${{ matrix.os-and-perl.name }} with Perl ${{ matrix.os-and-perl.perl-version }}
+    name: ${{ matrix.os-and-perl.name }}
     runs-on: ${{ matrix.os-and-perl.runs-on }}
     strategy:
       fail-fast: false
