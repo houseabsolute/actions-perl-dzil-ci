@@ -30,10 +30,10 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - name: Check out Perl project repository
-        uses: actions/checkout@v6
+        uses: actions/checkout@v7
 
       - name: Check out workflow repository
-        uses: actions/checkout@v6
+        uses: actions/checkout@v7
         with:
           repository: houseabsolute/workflow-perl-dzil-ci
           ref: ${{ inputs.ref }}
@@ -56,7 +56,7 @@ jobs:
         run: dzil authordeps | grep -v '^inc::' > /tmp/dzil-authordeps.txt
 
       - name: Upload dzil authordeps artifact
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v7
         with:
           name: dzil-authordeps.txt
           path: /tmp/dzil-authordeps.txt
@@ -69,7 +69,7 @@ jobs:
         run: dzil build
 
       - name: Upload release tarball artifact
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v7
         with:
           name: "${{ inputs.dist }}.tar.gz"
           path: "*.tar.gz"
@@ -81,7 +81,7 @@ jobs:
       matrix: ${{ steps.define-matrix.outputs.matrix }}
     steps:
       - name: Check out workflow repository
-        uses: actions/checkout@v6
+        uses: actions/checkout@v7
         with:
           repository: houseabsolute/workflow-perl-dzil-ci
           ref: ${{ inputs.ref }}
@@ -114,7 +114,7 @@ jobs:
           fi
 
       - name: Check out workflow repository
-        uses: actions/checkout@v6
+        uses: actions/checkout@v7
         with:
           repository: houseabsolute/workflow-perl-dzil-ci
           ref: ${{ inputs.ref }}
@@ -184,7 +184,7 @@ jobs:
 
     steps:
       - name: Check out workflow repository
-        uses: actions/checkout@v6
+        uses: actions/checkout@v7
         with:
           repository: houseabsolute/workflow-perl-dzil-ci
           ref: ${{ inputs.ref }}

@@ -60,7 +60,7 @@ runs:
         perl ./.git/.workflow-perl-dzil-ci/.github/actions/set-up-perl/define-cache-paths.pl "${{ env.SETUP_PERL_VERSION }}" "${{ inputs.cache-extra }}"
 
     - name:
-      uses: actions/cache@v4
+      uses: actions/cache@v6
       with:
         path: |
           ${{ steps.define-cache-paths.outputs.cache-paths }}
