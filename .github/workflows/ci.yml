@@ -235,6 +235,15 @@ jobs:
           # This will turn newlines into spaces.
           packages="$(perl -E 'say join q{ }, split /\s+/, q{${{ inputs.brew-packages }}}')"
           brew install $packages
+
+          # Homebrew installs under its own prefix, which is not on the
+          # compiler's default search path, so an XS dist looking for a header
+          # will not find it. CPATH and LIBRARY_PATH are picked up by cc
+          # itself, so this works without every Makefile.PL needing its own
+          # flag for it.
+          prefix="$(brew --prefix)"
+          echo "CPATH=${prefix}/include${CPATH:+:${CPATH}}" >> "$GITHUB_ENV"
+          echo "LIBRARY_PATH=${prefix}/lib${LIBRARY_PATH:+:${LIBRARY_PATH}}" >> "$GITHUB_ENV"
         if: "inputs.brew-packages != '' && startsWith(matrix.os-and-perl.runs-on, 'macos')"
 
       - name: Check out workflow repository
