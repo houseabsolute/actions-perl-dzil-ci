@@ -50,6 +50,14 @@ jobs:
           cache-prefix: build-and-author-tests
           cache-extra: bin
 
+      # Without this, GitHub::Meta cannot work out the repo to ask about, and
+      # builds a request URI out of the dist abstract instead. GitHub rejects
+      # that with a non-JSON error, which the plugin dies trying to parse
+      # before falling back to offline data, so the dist loses its GitHub
+      # metadata.
+      - name: Set github.user for Dist::Zilla::Plugin::GitHub
+        run: git config github.user "${{ github.repository_owner }}"
+
       - name: Install Dist::Zilla and Test::Harness
         run: cpm install --verbose --show-build-log-on-failure --global Dist::Zilla Test::Harness
 
