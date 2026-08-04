@@ -21,7 +21,9 @@ on:
         description: "Additional modules to install. This should be a whitespace-separated list."
         type: string
       apt-packages-for-author-tests:
-        description: "Apt packages to install when running author tests as a string containing a whitespace-separated list of packages."
+        description:
+          "Apt packages to install when running author tests as a string containing a
+          whitespace-separated list of packages."
         type: string
 
 jobs:
