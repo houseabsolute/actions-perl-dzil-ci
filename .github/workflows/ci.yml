@@ -12,7 +12,7 @@ on:
       min-perl:
         description: "The minimum version of Perl to test with."
         type: string
-        default: "5.12.5"
+        default: "5.24.4"
       with-threads:
         description: "If true, then latest Perl with threads enabled will be added to the matrix."
         type: boolean
