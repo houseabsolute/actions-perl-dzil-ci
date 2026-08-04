@@ -25,6 +25,24 @@ on:
           "Apt packages to install when running author tests as a string containing a
           whitespace-separated list of packages."
         type: string
+      apt-packages:
+        description:
+          "Apt packages needed to install this dist's runtime and test deps, as a string containing
+          a whitespace-separated list of packages. These are installed for the author tests and for
+          every Linux entry in the test matrix."
+        type: string
+      brew-packages:
+        description:
+          "Homebrew packages needed to install this dist's runtime and test deps, as a string
+          containing a whitespace-separated list of packages. These are installed for every macOS
+          entry in the test matrix."
+        type: string
+      with-windows:
+        description:
+          "If false, Windows is left out of the test matrix. Use this for dists that depend on a
+          system library with no reasonable Windows story."
+        type: boolean
+        default: true
 
 jobs:
   build-release-tarball:
@@ -100,7 +118,7 @@ jobs:
       - name: Define test matrix
         id: define-matrix
         run: |
-          perl ./.git/.workflow-perl-dzil-ci/.github/workflows/define-test-matrix.pl "${{ inputs.min-perl }}" "${{ inputs.with-threads }}"
+          perl ./.git/.workflow-perl-dzil-ci/.github/workflows/define-test-matrix.pl "${{ inputs.min-perl }}" "${{ inputs.with-threads }}" "${{ inputs.with-windows }}"
 
       - name: Show matrix
         run: |
@@ -116,10 +134,11 @@ jobs:
           set -e
           set -x
 
-          if [ -n "${{ inputs.apt-packages-for-author-tests }}" ]; then
+          all="${{ inputs.apt-packages }} ${{ inputs.apt-packages-for-author-tests }}"
+          # This will turn newlines into spaces.
+          packages="$(perl -E 'say join q{ }, grep { length } split /\s+/, q{'"$all"'}')"
+          if [ -n "$packages" ]; then
               sudo apt-get update
-              # This will turn newlines into spaces.
-              packages="$(perl -E 'say join q{ }, split /\s+/, q{${{ inputs.apt-packages-for-author-tests }}}')"
               sudo apt-get --yes install $packages
           fi
 
@@ -193,6 +212,31 @@ jobs:
       matrix: ${{ fromJSON(needs.define-matrix.outputs.matrix) }}
 
     steps:
+      # Windows has no equivalent. A dist that needs a system library there
+      # should set `with-windows: false` instead.
+      - name: Install extra apt packages
+        run: |
+          set -e
+          set -x
+
+          if [ -n "${{ inputs.apt-packages }}" ]; then
+              sudo apt-get update
+              # This will turn newlines into spaces.
+              packages="$(perl -E 'say join q{ }, split /\s+/, q{${{ inputs.apt-packages }}}')"
+              sudo apt-get --yes install $packages
+          fi
+        if: "inputs.apt-packages != '' && startsWith(matrix.os-and-perl.runs-on, 'ubuntu')"
+
+      - name: Install extra Homebrew packages
+        run: |
+          set -e
+          set -x
+
+          # This will turn newlines into spaces.
+          packages="$(perl -E 'say join q{ }, split /\s+/, q{${{ inputs.brew-packages }}}')"
+          brew install $packages
+        if: "inputs.brew-packages != '' && startsWith(matrix.os-and-perl.runs-on, 'macos')"
+
       - name: Check out workflow repository
         uses: actions/checkout@v7
         with:

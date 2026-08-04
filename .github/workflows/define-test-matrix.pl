@@ -6,6 +6,7 @@ use JSON::PP qw( encode_json );
 
 my $min_perl     = shift;
 my $with_threads = shift;
+my $with_windows = shift;
 
 my @jobs = (
     {
@@ -18,12 +19,15 @@ my @jobs = (
         'runs-on'      => 'macos-latest',
         'perl-version' => 'latest',
     },
-    {
+);
+
+if ( ( $with_windows // 'true' ) eq 'true' ) {
+    push @jobs, {
         name           => 'Windows',
         'runs-on'      => 'windows-latest',
         'perl-version' => 'latest',
-    }
-);
+    };
+}
 
 if ( $with_threads eq 'true' ) {
     push @jobs, {
