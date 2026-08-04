@@ -5,12 +5,29 @@ on:
         description: "The ref of this reusable workflow."
         type: string
         required: true
+      apt-packages:
+        description:
+          "Apt packages needed to install this dist's develop deps, as a string containing a
+          whitespace-separated list of packages."
+        type: string
 
 jobs:
   lint:
     name: Lint
     runs-on: ubuntu-latest
     steps:
+      - name: Install extra apt packages
+        run: |
+          set -e
+          set -x
+
+          if [ -n "${{ inputs.apt-packages }}" ]; then
+              sudo apt-get update
+              # This will turn newlines into spaces.
+              packages="$(perl -E 'say join q{ }, split /\s+/, q{${{ inputs.apt-packages }}}')"
+              sudo apt-get --yes install $packages
+          fi
+
       - name: Check out Perl project repository
         uses: actions/checkout@v7
 
