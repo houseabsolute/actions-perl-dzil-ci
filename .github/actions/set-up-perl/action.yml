@@ -10,6 +10,11 @@ inputs:
     required: true
   cache-extra:
     default: ""
+  # The deps a job installs do not always come from dist.ini. The lint
+  # workflow installs develop deps from the cpanfile, which can change on its
+  # own when a release regenerates it.
+  cache-key-file:
+    default: dist.ini
 
 runs:
   using: composite
@@ -65,6 +70,6 @@ runs:
         path: |
           ${{ steps.define-cache-paths.outputs.cache-paths }}
         key: |
-          ${{ inputs.cache-prefix }}-perl-cache-${{ env.SETUP_PERL_HASH }}-${{ hashFiles('dist.ini') }}
+          ${{ inputs.cache-prefix }}-perl-cache-${{ env.SETUP_PERL_HASH }}-${{ hashFiles(inputs.cache-key-file) }}
         restore-keys: |
           ${{ inputs.cache-prefix }}-perl-cache-${{ env.SETUP_PERL_HASH }}

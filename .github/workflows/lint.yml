@@ -1,0 +1,52 @@
+on:
+  workflow_call:
+    inputs:
+      ref:
+        description: "The ref of this reusable workflow."
+        type: string
+        required: true
+
+jobs:
+  lint:
+    name: Lint
+    runs-on: ubuntu-latest
+    steps:
+      - name: Check out Perl project repository
+        uses: actions/checkout@v7
+
+      - name: Check out workflow repository
+        uses: actions/checkout@v7
+        with:
+          repository: houseabsolute/workflow-perl-dzil-ci
+          ref: ${{ inputs.ref }}
+          # We have to use `./` at the beginning of a `uses:` path, so putting it under `.git`
+          # ensures that tools like `precious` ignore it.
+          path: ./.git/.workflow-perl-dzil-ci
+
+      - name: Set up Perl
+        uses: ./.git/.workflow-perl-dzil-ci/.github/actions/set-up-perl
+        with:
+          perl-version: latest
+          cache-prefix: lint
+          # perlcritic, perltidy, and podtidy are installed as scripts.
+          cache-extra: bin
+          cache-key-file: cpanfile
+
+      - name: Install mise
+        run: |
+          set -e
+          set -x
+
+          curl https://mise.run | sh
+          mise install
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+      # perlcritic, perltidy, podchecker, and podtidy are develop deps, so
+      # `--with-all` is what pulls them in.
+      - name: Install lint tools
+        run: |
+          cpm install --verbose --show-build-log-on-failure --global --with-all --cpanfile ./cpanfile
+
+      - name: Run precious
+        run: mise exec -- precious lint --all
